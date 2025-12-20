@@ -1,85 +1,55 @@
 # VoidText
 
-VoidText is a modern, client-side web application for extracting text from images, PDFs, and PowerPoint files using OCR and document parsing libraries.
+**Universal Text Converter** – Extract text from Images, PowerPoint, and PDF files.
 
-It runs directly in the browser, requires no backend server, and prioritizes privacy while still offering optional cloud OCR for scanned documents.
+![VoidText Preview](screenshots/preview.png)
 
 ---
 
 ## Features
 
-- Image to Text (OCR)
-- PDF to Text (text-based PDFs + OCR support)
-- PowerPoint to Text (.pptx)
-- Client-side processing (no server required)
-- Optional cloud OCR via OCR.space
-- Drag & drop file uploads
-- Batch processing
-- Copy individual results or all extracted text
-- Responsive, modern UI
-- Works fully in the browser
+- **Image to Text**: Extract text from images using OCR (Tesseract.js or Cloud API).
+- **PowerPoint to Text**: Extract text from `.pptx` or `.ppt` slides.
+- **PDF to Text**: Extract text from text-based PDFs or scanned PDFs using OCR.
+- **Client-side processing**: Convert files directly in your browser for privacy and speed.
+- **Cloud API support**: Optional OCR.space API integration for better accuracy on scanned files.
+- **Copy individual or all text**: Easily copy extracted content.
+- **Undo & Remove**: Remove extracted items and undo actions.
+- **Responsive Design**: Works on all devices and screen sizes.
 
 ---
 
-## Supported Formats
+## Usage
 
-- Images: PNG, JPG, JPEG, GIF, BMP  
-- Documents: PDF  
-- Presentations: PPTX, PPT  
-
----
-
-## How It Works
-
-VoidText uses a combination of client-side libraries:
-
-- **Tesseract.js** for OCR
-- **PDF.js** for extracting text from PDFs
-- **PizZip + Docxtemplater** for reading PowerPoint files
-
-For scanned images or image-based PDFs, optional cloud OCR can be enabled using an OCR.space API key.
-
-No files are uploaded to a server when using client-side mode.
+1. Open the **VoidText** website.
+2. Select the file type you want to convert (Image, PowerPoint, PDF).
+3. Upload your files using drag & drop or file browser.
+4. Choose conversion method:
+   - **Client-side**: Fast and private, works directly in the browser.
+   - **Cloud API**: Optional, requires OCR.space API key for scanned files.
+5. Click **Convert to Text**.
+6. Copy individual results or all extracted text.
 
 ---
 
-## Privacy
+## Screenshots
 
-- Client-side extraction runs entirely in your browser
-- No backend or database
-- API keys (if used) are stored locally in browser storage
-- Files are never uploaded unless cloud OCR is explicitly selected
-
----
-
-## Getting Started
-
-1. Clone or download the repository
-2. Open `index.html` in your browser
-3. Upload files and extract text instantly
-
-No build step or server setup required.
+![VoidText Preview](screenshots/preview.png)
 
 ---
 
 ## Technologies Used
 
-- HTML5
-- CSS3
-- Vanilla JavaScript
-- Tesseract.js
-- PDF.js
-- PizZip
-- OCR.space API (optional)
+- HTML, CSS, JavaScript
+- [Tesseract.js](https://github.com/naptha/tesseract.js) for OCR
+- [PDF.js](https://mozilla.github.io/pdf.js/) for PDF parsing
+- [PizZip](https://github.com/open-xml-templating/pizzip) + [Docxtemplater](https://docxtemplater.com/) for PowerPoint extraction
 
 ---
 
-## Use Cases
+## Tags
 
-- Extract text from scanned documents
-- Copy text from PDFs
-- Convert presentation slides into editable text
-- Quick OCR without installing software
+`OCR` `Text Extraction` `PDF` `PowerPoint` `Image to Text` `Client-side` `Responsive` `Web App` `JavaScript` `Tesseract.js`
 
 ---
 
