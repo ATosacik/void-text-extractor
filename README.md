@@ -1,6 +1,6 @@
 # VoidText
 
-**Universal Text Converter** – Extract text from Images, PowerPoint, and PDF files.
+**Universal Text Extractor** – Extract text from Images, PowerPoint, and PDF files.
 
 ---
 
