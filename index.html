@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoidText - Text Extractor</title>
+    <title>VoidTextExtractor — Universal Text Extractor</title>
+    <meta name="description" content="Universal text extractor">
     <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip.js"></script>
     <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip-utils.js"></script>
     <script src="https://unpkg.com/docxtemplater@3.42.0/build/docxtemplater.js"></script>
@@ -11,33 +12,40 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@v4/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root{
-            /* Core background / panels */
-            --bg: #0b0b0c; /* page background end */
-            --bg-strong: #060606; /* background solid to avoid overscroll flash */
-            --panel: #141416; /* main container */
-            --panel-2: #222; /* section / card background */
-            --panel-3: #2a2a2a; /* alternate panel */
+            /* Core background / panels - VOID THEME */
+            --bg: #000000; /* pure black void */
+            --bg-strong: #0a0a0a; /* slightly lighter black */
+            --panel: #121212; /* main container */
+            --panel-2: #1a1a1a; /* section / card background */
+            --panel-3: #1e1e1e; /* alternate panel */
 
             /* Text colors */
-            --text: #e8eef6; /* primary text */
-            --text-strong: #ffffff; /* headings */
-            --text-muted: #aaa; /* secondary text */
-            --muted: #8b8b8b; /* utility muted */
+            --text: #e6e6e6cc; /* primary text */
+            --text-strong: #e6e6e6cc; /* headings */
+            --text-muted: #999; /* secondary text */
+            --text-secondary: #aaa; /* secondary lighter text */
+            --muted: #888; /* utility muted */
             --muted-2: #666; /* slightly darker muted */
+            --muted-3: #777; /* extra muted */
 
-            /* Borders & accents */
-            --border: #262628;
+            /* Borders & accents - WHITE NEON THEME */
+            --border: #222;
             --border-strong: #333;
-            /* Accent now neutral (no blues) */
-            --accent: #bdbdbd; /* light neutral accent */
-            --accent-strong: #9e9e9e; /* slightly darker neutral */
+            --border-mid: #555;
+            --accent: #ffffff; /* white neon */
+            --accent-strong: #e0e0e0; /* slightly dimmer white */
+            --glow-white: rgba(255, 255, 255, 0.15);
+            --glow-white-strong: rgba(255, 255, 255, 0.3);
 
-            /* (Removed semantic success/danger variables) */
             /* Button color aliases (use for controls, switches and action buttons) */
             --btn-bg: #333; /* primary dark button background */
             --btn-hover: #444; /* hover state for dark buttons */
+            --gray-light: #444;
+            --gray-medium: #555;
+            --gray-dark: #666;
 
             /* Button sizing presets */
             /* Typography */
@@ -71,10 +79,29 @@
             /* Notification / shadows */
             --notification-bg: var(--border-strong);
             --notification-text: #e0e0e0;
-            /* Mid and small borders */
-            --border-mid: #555;
-            /* extra muted shades */
-            --muted-3: #777;
+            
+            /* White overlay opacity variants */
+            --overlay-white-xs: rgba(255, 255, 255, 0.02);
+            --overlay-white-sm: rgba(255, 255, 255, 0.04);
+            --overlay-white-md: rgba(255, 255, 255, 0.05);
+            --overlay-white-lg: rgba(255, 255, 255, 0.15);
+            --overlay-white-xl: rgba(255, 255, 255, 0.2);
+            --overlay-white-2xl: rgba(255, 255, 255, 0.3);
+            --overlay-white-3xl: rgba(255, 255, 255, 0.5);
+            
+            /* Dark overlay opacity variants */
+            --overlay-black-sm: rgba(0, 0, 0, 0.2);
+            --overlay-black-md: rgba(0, 0, 0, 0.3);
+            --overlay-black-lg: rgba(0, 0, 0, 0.45);
+            
+            /* Dark background overlays */
+            --overlay-dark-sm: rgba(18, 18, 18, 0.8);
+            --overlay-dark-md: rgba(30, 30, 30, 0.9);
+            
+            /* Focus state styling */
+            --focus-glow: rgba(102, 102, 102, 0.12);
+            
+            /* Legacy/utility */
             --bg-dark: #111;
             --shadow: rgba(0,0,0,0.2);
         }
@@ -87,73 +114,151 @@
         html { background-color: var(--bg-strong); }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(180deg, var(--bg-strong) 0%, var(--bg) 100%);
+            background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            padding: 1.125rem; /* 18px */
-            line-height: 1.55;
-            -webkit-font-smoothing:antialiased;
-            background-attachment: fixed;
+            padding: 2rem;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
             font-size: var(--font-base);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background: linear-gradient(to bottom, var(--panel-2), #000);
+        }
+        @keyframes breathingShadow {
+            0% {
+                box-shadow: 0 0 30px rgba(255, 255, 255, 0.15), 0 0 50px rgba(255, 255, 255, 0.05);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(255, 255, 255, 0.25), 0 0 70px rgba(255, 255, 255, 0.1);
+            }
+            100% {
+                box-shadow: 0 0 30px rgba(255, 255, 255, 0.15), 0 0 50px rgba(255, 255, 255, 0.05);
+            }
         }
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
             background: var(--panel);
-            border-radius: 12px;
-            border: 1px solid var(--border);
+            border-radius: 16px;
+            border: 1px solid var(--border-strong);
             overflow: hidden;
+            box-shadow: 0 0 30px var(--glow-white);
+            animation: breathingShadow 8s ease-in-out infinite;
         }
         header {
-            background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
-            padding: 1.625rem 1.375rem; /* 26px 22px */
+            background: var(--bg-strong);
+            padding: 3rem 2rem;
             text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
+            border-bottom: 1px solid var(--border-strong);
         }
         h1 {
-            font-size: clamp(1.5rem, 1.2rem + 2vw, 2rem);
-            margin-bottom: 0.375rem; /* 6px */
+            font-size: clamp(2rem, 3vw, 3rem);
+            margin-bottom: 0.75rem;
             color: var(--text-strong);
-            letter-spacing: 0.06rem;
+            letter-spacing: 0.1rem;
+            font-weight: 800;
+            text-shadow: 0 0 20px var(--glow-white);
         }
         .subtitle {
-            color: var(--muted-2);
-            font-size: 0.98rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 300;
+            letter-spacing: 0.05rem;
         }
         .main-content {
-            padding: 1.625rem; /* 26px */
+            padding: 3rem 2rem;
+            background: linear-gradient(to bottom, #000000, var(--panel-2));
         }
-        /* Converter type selector */
+        /* Category selector */
         .converter-type-selector {
-            background: var(--panel-2);
-            padding: 1.25rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1.25rem;
-            border: 1px solid var(--border-strong);
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            margin-bottom: 3rem;
+            border: none;
+            text-align: center;
+        }
+        .converter-type-selector > label {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-strong);
+            margin-bottom: 2rem;
+            letter-spacing: 0.05rem;
         }
         .converter-options {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
-            gap: 0.9375rem; /* 15px */
-            margin-top: 0.9375rem;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-top: 0;
         }
         .converter-option {
-            background: var(--panel-3);
-            padding: 1.25rem;
-            border-radius: 0.375rem;
+            background: var(--panel-2);
+            padding: 2rem 1.5rem;
+            border-radius: 12px;
             border: 1px solid var(--border-strong);
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            min-height: 180px;
+        }
+        .converter-name {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-strong);
+            margin-bottom: 0.25rem;
+        }
+        .converter-desc {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
         }
         .converter-option:hover {
-            background: var(--btn-hover);
-            border-color: var(--border-mid);
+            background: var(--panel-3);
+            border-color: var(--glow-white-strong);
+            box-shadow: 0 0 10px var(--glow-white);
+            transform: translateY(-5px);
         }
         .converter-option.active {
-            background: #333;
-            border-color: #666;
-            box-shadow: 0 0 0 2px rgba(102,102,102,0.12) inset;
+            background: var(--panel-3);
+            border-color: var(--overlay-white-3xl);
+            box-shadow: 0 0 12px var(--glow-white), 0 0 0 1px var(--overlay-white-xl) inset;
+        }
+        /* Dynamic select dropdown styling */
+        .dynamic-select {
+            width: 100%;
+            padding: 0.625rem;
+            background: var(--input-bg);
+            color: var(--text);
+            border: 1px solid var(--input-border);
+            border-radius: 0.375rem;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+        .dynamic-select option {
+            background: var(--input-bg);
+            color: var(--text);
+            padding: 0.5rem;
+        }
+        .dynamic-select:hover {
+            border-color: var(--border);
+        }
+        .dynamic-select:focus {
+            outline: none;
+            border-color: var(--muted-2);
+            box-shadow: 0 0 0 2px var(--focus-glow);
         }
         .converter-icon {
             font-size: 2.5em;
@@ -162,39 +267,64 @@
         }
         .converter-name {
             font-weight: bold;
-            color: #fff;
+            color: var(--text-strong);
             margin-bottom: 5px;
         }
         .converter-desc {
             font-size: 0.85em;
-            color: #888;
+            color: var(--muted);
         }
         /* Converter-specific sections */
         .converter-section {
             display: none;
-            transition: min-height 0.25s ease;
+            margin: 0;
+            padding: 0;
         }
         .converter-section.active {
             display: block;
         }
         .upload-section {
-            border: 2px dashed var(--border-mid);
-            border-radius: 0.5rem;
-            padding: 2.5rem; /* 40px */
+            border: 2px dashed var(--border-strong);
+            border-radius: 16px;
+            padding: 4rem 2rem;
             text-align: center;
-            margin-bottom: 0.625rem; /* 10px - reduced gap before preview */
             transition: all 0.3s ease;
             background: var(--panel-2);
         }
+        .upload-section:hover {
+            border-color: var(--glow-white);
+            box-shadow: 0 0 10px var(--glow-white);
+        }
         .upload-section.drag-over {
-            border-color: var(--muted-2);
+            border-color: var(--glow-white-strong);
             background: var(--panel-3);
+            box-shadow: 0 0 15px var(--glow-white);
         }
         .upload-icon {
-            font-size: 4em;
-            color: var(--muted-2);
-            margin-bottom: 1.25rem;
-            opacity: 0.7;
+            font-size: 5rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+        .blackhole-icon {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            margin: 0 auto 1.5rem;
+            box-sizing: border-box;
+        }
+        .blackhole-icon canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .upload-section h3 {
+            color: var(--text-strong);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
         }
         .file-input {
             display: none;
@@ -265,7 +395,7 @@
             font-size: 2.5em;
             text-align: center;
             margin-bottom: 5px;
-            color: #888;
+            color: var(--muted);
             height: 100px;
             display: flex;
             align-items: center;
@@ -323,79 +453,119 @@
             margin-bottom: 8px;
         }
 
-        /* Convert (primary) button */
+        /* Extract Text button - dark card style */
         .convert-btn {
-            background: var(--btn-primary-bg);
-            color: var(--btn-primary-color);
-            font-weight: bold;
-            margin: 0 auto 1.875rem; /* 30px */
-            min-width: 12.5rem; /* 200px */
-            padding: 0.75rem 1.75rem;
-            height: calc(var(--btn-height) + 0.375rem);
-            border-radius: var(--btn-radius);
+            background: var(--panel-2);
+            color: var(--text-strong);
+            font-weight: 700;
+            margin: 3rem auto;
+            min-width: 16rem;
+            padding: 1rem 3rem;
+            height: auto;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            letter-spacing: 0.04rem;
+            text-transform: uppercase;
+            border: 1px solid var(--border-strong);
+            box-shadow: none;
+            transition: all 0.25s ease;
         }
         .convert-btn:hover:not(:disabled) {
-            background: #bbbbbb;
-            color: var(--btn-primary-color);
-            transform: translateY(-0.125rem);
-            box-shadow: 0 0.3125rem 0.9375rem rgba(255,255,255,0.1);
+            background: var(--panel-3);
+            color: var(--text-strong);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 10px var(--glow-white);
         }
         .convert-btn:disabled {
-            background: #333;
-            color: #666;
+            background: var(--panel-3);
+            color: var(--muted-2);
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
+            border-color: var(--border-strong);
         }
         /* Method selector */
-        .method-selector { background: var(--panel-2); padding: 1.25rem; border-radius: 0.5rem; margin-bottom: 1.25rem; border: 1px solid var(--border-strong); }
+        .method-selector { 
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            margin-bottom: 3rem;
+            border: none;
+            text-align: center;
+        }
+        .method-selector > label {
+            display: block;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-strong);
+            margin-bottom: 1.5rem;
+        }
         .method-options {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+            width: 100%;
+            align-items: stretch;
+        }
+        @media (max-width: 680px) {
+            .method-options { grid-template-columns: 1fr; }
         }
         .method-option {
-            background: #2a2a2a;
-            padding: 20px;
-            border-radius: 6px;
-            border: 1px solid #333;
+            background: var(--panel-2);
+            padding: 1.25rem 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-strong);
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            min-width: 0;
         }
         .method-option:hover {
-            background: #333;
-            border-color: #555;
+            background: var(--panel-3);
+            border-color: var(--glow-white-strong);
+            box-shadow: 0 0 8px var(--glow-white);
         }
         .method-option.active {
-            background: #333;
-            border-color: #666;
-            box-shadow: 0 0 0 2px rgba(102,102,102,0.12) inset;
+            background: var(--panel-3);
+            border-color: var(--overlay-white-3xl);
+            box-shadow: 0 0 10px var(--glow-white), 0 0 0 1px var(--overlay-white-xl) inset;
+        }
+        .method-option.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(1);
         }
         .method-icon {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-align: center;
-            opacity: 0.8;
+            font-size: 2rem;
+            opacity: 0.9;
+            flex-shrink: 0;
+        }
+        .method-content {
+            flex: 1;
+            text-align: left;
         }
         .method-name {
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 5px;
-            text-align: center;
+            font-weight: 600;
+            color: var(--text-strong);
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
         }
         .method-desc {
-            font-size: 0.85em;
-            color: #888;
-            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.3;
         }
         .conversion-method {
             display: none;
             margin-top: 15px;
             padding: 15px;
-            background: #2a2a2a;
+            background: var(--panel-2);
             border-radius: 6px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-strong);
         }
         .conversion-method.active {
             display: block;
@@ -432,24 +602,55 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #444;
+            background-color: var(--btn-hover);
             transition: .4s;
             border-radius: 20px;
         }
         .slider:before { position: absolute; content: ""; height: 1rem; width: 1rem; left: 0.25rem; bottom: 0.25rem; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider {
-            background-color: #555;
+            background-color: var(--border-mid);
         }
         input:checked + .slider:before { transform: translateX(1.3125rem); }
         .secure-label {
             font-size: 0.9em;
-            color: #aaa;
+            color: var(--text-secondary);
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: .5rem;
         }
         .secure-badge { background: var(--border-strong); color: var(--text-muted); font-size: 0.7rem; padding: 0.125rem 0.375rem; border-radius: 0.25rem; border: 1px solid var(--border-mid); flex-shrink: 0; }
+        .api-key-status { 
+            font-size: 0.75rem; 
+            padding: 0.25rem 0.625rem; 
+            border-radius: 0.75rem; 
+            border: 1px solid var(--border-strong); 
+            flex-shrink: 0; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.375rem; 
+            font-weight: bold; 
+            margin-left: auto; 
+        }
+        .api-key-status.active {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-strong);
+            border-color: var(--border-strong);
+        }
+        .api-key-status.saved {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-strong);
+            border-color: var(--border-strong);
+        }
+        .api-key-status.inactive {
+            background: var(--panel-3);
+            color: var(--muted-2);
+            border-color: var(--border-strong);
+        }
+        .status-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; display: inline-block; }
+        .api-key-status.active .status-dot { background: var(--accent); }
+        .api-key-status.saved .status-dot { background: var(--accent); }
+        .api-key-status.inactive .status-dot { background: var(--muted-2); }
         .api-key-status { font-size: 0.75rem; padding: 0.25rem 0.625rem; border-radius: 0.75rem; border: 1px solid var(--border-mid); flex-shrink: 0; display: flex; align-items: center; gap: 0.375rem; font-weight: bold; margin-left: auto; }
         .api-key-status.active {
             background: rgba(255,255,255,0.04);
@@ -463,9 +664,9 @@
             border-color: var(--border-strong);
         }
         .api-key-status.inactive {
-            background: #333;
-            color: #888;
-            border-color: #555;
+            background: var(--border-strong);
+            color: var(--muted);
+            border-color: var(--border-mid);
         }
         .status-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; display: inline-block; }
         .api-key-status.active .status-dot { background: var(--accent); }
@@ -473,26 +674,27 @@
         .api-key-status.inactive .status-dot { background: var(--muted-2); }
 
         .api-key-section {
-            background: #2a2a2a;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #333;
-        }   
-        .api-key-section > label {          
-            display: block;   
-            margin-bottom: 10px;            
-            font-weight: bold;            
-            color: #fff;
+            background: var(--panel-2);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 3rem;
+            border: 1px solid var(--border-strong);
+        }
+        .api-key-section > label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--text-strong);
+            font-size: 1.1rem;
         }
         .api-key-link {
             font-size: 0.8em;
-            color: #666;
+            color: var(--muted-2);
             margin-top: 8px;
             display: block;
         }
         .api-key-link a {
-            color: #aaa;
+            color: var(--text-secondary);
             text-decoration: none;
         }
         .api-key-link a:hover {
@@ -500,11 +702,11 @@
         }
         /* Instructions */
         .instructions {
-            background: #222;
+            background: var(--card-bg);
             padding: 0;
             border-radius: 8px;
             margin-bottom: 20px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-strong);
             font-size: 0.9em;
         }
         .instructions-header {
@@ -516,16 +718,16 @@
             user-select: none;
         }
         .instructions-header:hover {
-            background: #252525;
+            background: var(--border-strong);
         }
         .instructions-header h3 {
-            color: #fff;
+            color: var(--text-strong);
             margin: 0;
             font-size: 1.1em;
         }
         .instructions-toggle {
             font-size: 1.2em;
-            color: #888;
+            color: var(--muted);
             transition: transform 0.3s ease;
         }
         .instructions-toggle.collapsed {
@@ -543,7 +745,7 @@
         }
         .instructions ol {
             margin-left: 20px;
-            color: #888;
+            color: var(--muted);
             margin-top: 0;
         }
         .instructions li {
@@ -554,7 +756,7 @@
         .progress-bar { width: 100%; height: 0.5rem; background: var(--border-strong); border-radius: 0.25rem; overflow: hidden; margin: 1.25rem 0; }
         .progress-fill { height: 100%; background: var(--muted-2); width: 0%; transition: width 0.3s ease; }
         .status-text {
-            color: #888;
+            color: var(--muted);
             font-size: 0.9em;
         }
         /* Results section */
@@ -568,15 +770,15 @@
             align-items: center;
             margin-bottom: 15px;
             padding: 15px;
-            background: #222;
+            background: var(--card-bg);
             border-radius: 8px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-strong);
             gap: 12px;
         }
         .results-controls h2 {
             margin: 0;
             font-size: 1.3rem;
-            color: var(--text-strong, #fff);
+            color: var(--text-strong, #e6e6e6cc);
             font-weight: 600;
             text-align: center;
             width: 100%;
@@ -598,9 +800,9 @@
         }
         .sort-select {
             padding: 8px 12px;
-            background: #1a1a1a;
-            color: #e0e0e0;
-            border: 1px solid #333;
+            background: var(--input-bg);
+            color: var(--accent-strong);
+            border: 1px solid var(--border-strong);
             border-radius: 4px;
             cursor: pointer;
             height: 42px;
@@ -648,7 +850,7 @@
             border-radius: 6px;
             background: var(--btn-neutral-bg);
             color: var(--btn-neutral-color);
-            border: 1px solid rgba(255,255,255,0.02);
+            border: 1px solid var(--overlay-white-xs);
             cursor: pointer;
         }
         .presentation-buttons button:hover { background: var(--btn-neutral-hover); }
@@ -659,8 +861,18 @@
             height: 42px;
             padding: 4px;
             background: transparent;
-            border: 1px solid rgba(255,255,255,0.04);
+            border: 1px solid var(--overlay-white-sm);
             color: var(--btn-neutral-color);
+        }
+        
+        /* Match presentation remove button style for clearResultsBtn */
+        #clearResultsBtn {
+            background: transparent;
+            border: 1px solid var(--overlay-white-sm);
+            color: var(--btn-neutral-color);
+        }
+        #clearResultsBtn:hover {
+            background: var(--btn-neutral-hover);
         }
         
         /* Results grid */
@@ -670,11 +882,11 @@
             gap: 15px;
         }
         .presentation-header {
-            background: #2a2a2a;
+            background: var(--card-bg);
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 10px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-strong);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -725,8 +937,8 @@
             }
         }
         .file-counter {
-            background: #333;
-            color: #888;
+            background: var(--border-strong);
+            color: var(--muted);
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 0.8em;
@@ -756,8 +968,8 @@
             transition: none;
         }
         .result-item-wrapper.expanded .result-text {
-            /* expanded uses a viewport-relative cap so it doesn't grow too tall */
-            max-height: 40vh;
+            /* expanded uses a larger viewport cap to reduce scrollbar use */
+            max-height: none;
         }
         /* expand/collapse toggle button styling (shares button presets) */
         .expand-item-btn { padding: 6px; width: 44px; height: calc(var(--btn-height) - 8px); display: inline-flex; align-items:center; justify-content:center; overflow: visible; border-radius: var(--btn-radius); }
@@ -765,19 +977,19 @@
         .expand-item-btn[aria-pressed="true"] svg { transform: none; }
         /* Result cards */
         .result-card {
-            background: #222;
+            background: var(--card-bg);
             border-radius: 8px;
             padding: 20px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-strong);
             transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
             align-items: stretch;
         }
         .result-card:hover {
-            border-color: #444;
+            border-color: var(--btn-hover);
             transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 15px var(--overlay-black-sm);
         }
         /* removed dynamic margin so expand/collapse icon doesn't shift */
         .result-header {
@@ -786,7 +998,7 @@
             align-items: center;
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border-strong);
         }
         .slide-info {
             display: flex;
@@ -794,11 +1006,11 @@
         }
         .result-slide-icon {
             font-size: 2em;
-            color: #aaa;
+            color: var(--text-secondary);
             margin-right: 10px;
         }
         .slide-number {
-            color: #aaa;
+            color: var(--text-secondary);
             font-weight: bold;
             margin-right: 10px;
         }
@@ -815,8 +1027,8 @@
         .copy-presentation-btn:hover { background: var(--btn-neutral-hover); }
         /* Result text */
         .result-text {
-            background: #1a1a1a;
-            border: 1px solid #333;
+            background: var(--input-bg);
+            border: 1px solid var(--border-strong);
             border-radius: 4px;
             padding: 15px;
             min-height: 150px;
@@ -825,7 +1037,7 @@
             white-space: pre-wrap;
             font-family: 'Courier New', monospace;
             line-height: 1.4;
-            color: #e0e0e0;
+            color: var(--accent-strong);
         }
         /* Stats */
         .stats {
@@ -835,9 +1047,9 @@
             justify-content: space-around;
             margin: 20px 0;
             padding: 16px;
-            background: #222;
+            background: var(--card-bg);
             border-radius: 8px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-strong);
             display: none;
             align-items: center;
         }
@@ -848,11 +1060,11 @@
         .stat-value {
             font-size: 2em;
             font-weight: bold;
-            color: #aaa;
+            color: var(--text-secondary);
         }
         .stat-label {
             font-size: 0.9em;
-            color: #888;
+            color: var(--muted);
         }
         /* Copy all section (placed in results header) */
         .copy-all-section {
@@ -866,31 +1078,31 @@
             display: flex;
         }
         .copy-all-btn {
-            background: var(--btn-neutral-bg, #444);
-            color: var(--text, #fff);
+            background: var(--btn-neutral-bg);
+            color: var(--text);
             border: none;
             padding: 0.55rem 0.9rem;
             border-radius: 6px;
-            height: var(--btn-height, 2.6rem);
+            height: var(--btn-height);
             cursor: pointer;
         }
         .copy-all-btn:hover {
-            background: var(--btn-neutral-hover, #555);
+            background: var(--btn-neutral-hover);
         }
         .copy-all-btn:disabled {
-            background: var(--btn-disabled-bg, #333);
+            background: var(--btn-disabled-bg);
             cursor: not-allowed;
             opacity: 0.9;
         }
         /* Error message */
         .error-message {
-            background: #444;
-            color: #e0e0e0;
+            background: var(--btn-hover);
+            color: var(--accent-strong);
             padding: 15px;
             border-radius: 6px;
             margin: 10px 0;
             display: none;
-            border: 1px solid #666;
+            border: 1px solid var(--muted-2);
         }
         /* Notification */
         .notification-container {
@@ -904,12 +1116,12 @@
             pointer-events: none;
         }
         .notification {
-            background: #333;
-            color: #e0e0e0;
+            background: var(--border-strong);
+            color: var(--accent-strong);
             padding: 15px 25px;
             border-radius: 6px;
-            border: 1px solid #555;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-mid);
+            box-shadow: 0 5px 15px var(--overlay-black-md);
             transform: translateX(150%);
             transition: transform 0.3s ease, opacity 0.3s ease;
             pointer-events: auto;
@@ -926,6 +1138,42 @@
             transform: translateX(150%);
             opacity: 0;
         }
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--overlay-dark-sm);
+            color: var(--text);
+            border: 2px solid var(--glow-white);
+            border-radius: 50%;
+            font-size: 28px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--glow-white);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+        .back-to-top-glyph {
+            display: inline-block;
+            transform: translateY(2px);
+        }
+        .back-to-top:hover {
+            background: var(--overlay-dark-md);
+            box-shadow: 0 0 25px var(--overlay-white-2xl);
+            border-color: var(--glow-white-strong);
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
         /* Collapse icon */
         .collapse-icon {
             transition: transform 0.3s ease;
@@ -935,10 +1183,10 @@
             transform: rotate(-90deg);
         }
         .result-item-wrapper {
-            background: #1e1e1e;
+            background: var(--panel-3);
             padding: 15px;
             border-radius: 6px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-strong);
         }
         .undo-section {
             position: fixed;
@@ -956,7 +1204,7 @@
             text-align: left;
             max-width: 90vw;
             width: min(720px, 90vw);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.45);
+            box-shadow: 0 8px 20px var(--overlay-black-lg);
             opacity: 0;
             pointer-events: none;
             transition: transform 0.25s ease, opacity 0.25s ease;
@@ -990,144 +1238,209 @@
         .undo-dismiss:hover { background: rgba(255,255,255,0.02); color: var(--text); }
         .undo-btn { background: var(--btn-neutral-bg); color: var(--btn-neutral-color); padding: 6px 12px; margin-left: 10px; }
         .undo-btn:hover { background: var(--btn-neutral-hover); }
+        
+        /* Title animation styles */
+        #title {
+            letter-spacing: 0.08em;
+            user-select: none;
+        }
+        .letter {
+            display: inline-block;
+            position: relative;
+            opacity: 0; /* Start hidden */
+            transition:
+                transform 0.7s cubic-bezier(0, 0, 0.2, 1),
+                scale 0.7s cubic-bezier(0, 0, 0.2, 1),
+                opacity 0.5s ease-out;
+            transform-origin: center center;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>VoidText</h1>
-            <p class="subtitle">Universal Text Extractor - Extract text from Images, PowerPoint and PDF files</p>
+            <h1 id="title"></h1>
+            <p class="subtitle">Universal Text Extractor</p>
         </header>
-        <div class="main-content">
+        <main class="main-content">
             <div class="converter-type-selector">
-                <label><strong>Select Converter Type:</strong></label>
+                <label>Choose Category</label>
                 <div class="converter-options">
                     <div class="converter-option active" data-type="image" onclick="selectConverterType('image')">
-                        <div class="converter-icon">□</div>
-                        <div class="converter-name">Image to Text</div>
-                        <div class="converter-desc">Extract text from images using OCR</div>
-                    </div>
-                    <div class="converter-option" data-type="powerpoint" onclick="selectConverterType('powerpoint')">
-                        <div class="converter-icon">◩</div>
-                        <div class="converter-name">PowerPoint to Text</div>
-                        <div class="converter-desc">Extract text from PowerPoint files</div>
+                        <div class="converter-name">Images</div>
+                        <div class="converter-desc">Photos, scans, screenshots<br>Supports: PNG • JPG • JPEG • GIF • BMP • TIFF</div>
                     </div>
                     <div class="converter-option" data-type="pdf" onclick="selectConverterType('pdf')">
-                        <div class="converter-icon">▭</div>
-                        <div class="converter-name">PDF to Text</div>
-                        <div class="converter-desc">Extract text from PDF documents</div>
+                        <div class="converter-name">PDFs</div>
+                        <div class="converter-desc">Text-based & scanned<br>Supports: PDF</div>
+                    </div>
+                    <div class="converter-option" data-type="documents" onclick="selectConverterType('documents')">
+                        <div class="converter-name">Documents</div>
+                        <div class="converter-desc">Office files<br>Supports: DOCX • PPTX • XLSX • ODT • ODP</div>
+                    </div>
+                    <div class="converter-option" data-type="everything" onclick="selectConverterType('everything')">
+                        <div class="converter-name">Other Formats</div>
+                        <div class="converter-desc">Plain text & archives<br>Supports: TXT • HTML • MD • JSON • CSV • and more</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Global API Key Section - Always Visible -->
-            <div class="api-key-section" id="globalApiSection">
-                <label>API Key:</label>
-                <input type="password" id="globalApiKey" class="api-key-input"
-                       placeholder="Enter your OCR.space API key here..." oninput="handleKeyInput(this)">
-                <div class="secure-save-container">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="globalSecureSave" onchange="toggleSecureSave(this)">
-                        <span class="slider"></span>
-                    </label>
-                    <label for="globalSecureSave" class="secure-label">
-                        Remember Key securely <span class="secure-badge">No Server</span>
-                    </label>
-                    <span class="api-key-status inactive" id="globalApiStatus">
-                        <span class="status-dot"></span>Not Active
-                    </span>
+
+            <div class="converter-section" id="documentsConverter">
+                <div class="method-selector">
+                    <label>Processing Options</label>
+                    <div class="method-options">
+                        <div class="method-option active" onclick="selectMethod('client','documents')">
+                            <div class="method-icon">▶</div>
+                            <div class="method-content">
+                                <div class="method-name">Client-side Extraction</div>
+                                <div class="method-desc">Fast, private – runs in your browser. Best for most files.</div>
+                            </div>
+                        </div>
+                        <div class="method-option disabled" onclick="selectMethod('cloud','documents')">
+                            <div class="method-icon">☁</div>
+                            <div class="method-content">
+                                <div class="method-name">Cloud OCR.space</div>
+                                <div class="method-desc">Not available for Presentations & Documents</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="api-key-link">
-                    <a href="https://ocr.space/ocrapi" target="_blank">Get FREE API Key here</a>
+                <!-- Global API Key Section -->
+                <div class="api-key-section" id="globalApiSection">
+                    <label>API Key Cloud OCR:</label>
+                    <input type="password" id="globalApiKey" class="api-key-input"
+                           placeholder="Enter your OCR.space API key here..." oninput="handleKeyInput(this)">
+                    <div class="secure-save-container">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="globalSecureSave" onchange="toggleSecureSave(this)">
+                            <span class="slider"></span>
+                        </label>
+                        <label for="globalSecureSave" class="secure-label">
+                            Remember securely <span class="secure-badge">stored only in your browser</span>
+                        </label>
+                        <span class="api-key-status inactive" id="globalApiStatus">
+                            <span class="status-dot"></span>Not Active
+                        </span>
+                    </div>
+                    <div class="api-key-link">
+                        <a href="https://ocr.space/ocrapi" target="_blank">Get FREE API Key here</a>
+                    </div>
                 </div>
+                <div class="upload-section" id="documentsDropZone" onclick="document.getElementById('documentsFileInput').click()" style="cursor: pointer;">
+                  
+                    <h3>Drag & Drop Documents & Presentations Here</h3>
+                    <p class="or-text">OR</p>
+                    <input type="file" id="documentsFileInput" class="file-input" accept=".docx,.pptx,.xlsx,.odt,.odp" multiple>
+                    <button class="upload-btn" onclick="event.stopPropagation(); document.getElementById('documentsFileInput').click()">
+                        Choose Files
+                    </button>
+                    <p style="color: var(--muted-2); margin-top: 10px;">Supports: DOCX, PPTX, XLSX, ODT, ODP</p>
+                </div>
+                <div class="file-preview" id="documentsPreview"></div>
             </div>
 
+            <!-- Image Converter Section -->
             <div class="converter-section active" id="imageConverter">
                 <div class="method-selector">
-                    <label><strong>Select Conversion Method:</strong></label>
+                    <label>Processing Options</label>
                     <div class="method-options">
                         <div class="method-option active" onclick="selectMethod('client','image')">
                             <div class="method-icon">▶</div>
-                            <div class="method-name">Client-side Extraction</div>
-                            <div class="method-desc">Extract text directly in your browser. Fast and private.</div>
+                            <div class="method-content">
+                                <div class="method-name">Client-side Extraction</div>
+                                <div class="method-desc">Fast, private – runs in your browser. Best for most files.</div>
+                            </div>
                         </div>
                         <div class="method-option" onclick="selectMethod('cloud','image')">
                             <div class="method-icon">☁</div>
-                            <div class="method-name">Cloud API (OCR)</div>
-                            <div class="method-desc">Use OCR.space API for scanned images.</div>
+                            <div class="method-content">
+                                <div class="method-name">Cloud OCR.space</div>
+                                <div class="method-desc">For advanced scanned images/PDFs. Requires free API key.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="upload-section" id="imageDropZone" onclick="document.getElementById('imageFileInput').click()" style="cursor: pointer;">
-                    <div class="upload-icon">□</div>
+                  
                     <h3>Drag & Drop Images Here</h3>
                     <p class="or-text">OR</p>
                     <input type="file" id="imageFileInput" class="file-input" accept="image/*" multiple>
                     <button class="upload-btn" onclick="event.stopPropagation(); document.getElementById('imageFileInput').click()">
                         Choose Images
                     </button>
-                    <p style="color: #666; margin-top: 10px;">Supports: PNG, JPG, JPEG, GIF, BMP</p>
+                    <p style="color: var(--muted-2); margin-top: 10px;">Supports: PNG, JPG, JPEG, GIF, BMP</p>
                 </div>
                 <div class="image-preview-container" id="imagePreview"></div>
             </div>
 
-            <div class="converter-section" id="powerpointConverter">
+            <!-- Everything Converter Section -->
+            <div class="converter-section" id="everythingConverter">
                 <div class="method-selector">
-                    <label><strong>Select Conversion Method:</strong></label>
+                    <label>Processing Options</label>
                     <div class="method-options">
-                        <div class="method-option active" onclick="selectMethod('client', 'powerpoint')">
+                        <div class="method-option active" onclick="selectMethod('client','everything')">
                             <div class="method-icon">▶</div>
-                            <div class="method-name">Client-side Extraction</div>
-                            <div class="method-desc">Extract text directly in your browser. Fast and private.</div>
+                            <div class="method-content">
+                                <div class="method-name">Client-side Extraction</div>
+                                <div class="method-desc">Fast, private – runs in your browser. Best for most files.</div>
+                            </div>
                         </div>
-                        <div class="method-option" onclick="selectMethod('cloud', 'powerpoint')">
+                        <div class="method-option disabled" onclick="selectMethod('cloud','everything')">
                             <div class="method-icon">☁</div>
-                            <div class="method-name">Cloud API (OCR)</div>
-                            <div class="method-desc">Convert slides to images and use OCR. More accurate.</div>
+                            <div class="method-content">
+                                <div class="method-name">Cloud OCR.space</div>
+                                <div class="method-desc">Not available for Other Formats</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="upload-section" id="powerpointDropZone" onclick="document.getElementById('powerpointFileInput').click()" style="cursor: pointer;">
-                    <div class="upload-icon">◩</div>
-                    <h3>Drag & Drop PowerPoint Files Here</h3>
+                <div class="upload-section" id="everythingDropZone" onclick="document.getElementById('everythingFileInput').click()" style="cursor: pointer;">
+                  
+                    <h3>Drag & Drop Files Here</h3>
                     <p class="or-text">OR</p>
-                    <input type="file" id="powerpointFileInput" class="file-input" accept=".pptx,.ppt" multiple>
-                    <button class="upload-btn" onclick="event.stopPropagation(); document.getElementById('powerpointFileInput').click()">
-                        Choose PowerPoint Files
+                    <input type="file" id="everythingFileInput" class="file-input" accept="image/*,.pdf,.docx,.pptx,.xlsx,.odt,.odp,.txt,.html,.htm,.md,.rtf,.eml,.epub,.json,.csv,.zip,.xml,.doc,.ppt,.xls,.msg,.pst,.svg,.heic,.heif,.webp,.rar,.7z,.tar,.gzip,.emlx,.mobi,.azw,.iso,.bz2,.bzip2,.xy,.djvu,.mbox,.ps" multiple>
+                    <button class="upload-btn" onclick="event.stopPropagation(); document.getElementById('everythingFileInput').click()">
+                        Choose Files
                     </button>
-                    <p style="color: #666; margin-top: 10px;">Supports: PPTX, PPT</p>
+                    <p style="color: var(--muted-2); margin-top: 10px;">Supports: Images, PDFs, Documents, Text, HTML, Markdown, RTF, EML, EPUB, JSON, CSV, and more</p>
                 </div>
-                <div class="file-preview" id="powerpointPreview"></div>
+                <div class="file-preview" id="everythingPreview"></div>
             </div>
 
             <div class="converter-section" id="pdfConverter">
                 <div class="method-selector">
-                    <label><strong>Select Conversion Method:</strong></label>
+                    <label>Processing Options</label>
                     <div class="method-options">
                         <div class="method-option active" onclick="selectMethod('client', 'pdf')">
                             <div class="method-icon">▶</div>
-                            <div class="method-name">Client-side Extraction</div>
-                            <div class="method-desc">Extract text directly in your browser. Works with text-based PDFs.</div>
+                            <div class="method-content">
+                                <div class="method-name">Client-side Extraction</div>
+                                <div class="method-desc">Fast, private – runs in your browser. Best for most files.</div>
+                            </div>
                         </div>
                         <div class="method-option" onclick="selectMethod('cloud', 'pdf')">
                             <div class="method-icon">☁</div>
-                            <div class="method-name">Cloud API (OCR)</div>
-                            <div class="method-desc">Convert scanned PDFs using OCR. Works with image-based PDFs.</div>
+                            <div class="method-content">
+                                <div class="method-name">Cloud OCR.space</div>
+                                <div class="method-desc">For advanced scanned images/PDFs. Requires free API key.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="upload-section" id="pdfDropZone" onclick="document.getElementById('pdfFileInput').click()" style="cursor: pointer;">
-                    <div class="upload-icon">▭</div>
+                   
                     <h3>Drag & Drop PDF Files Here</h3>
                     <p class="or-text">OR</p>
                     <input type="file" id="pdfFileInput" class="file-input" accept=".pdf" multiple>
                     <button class="upload-btn" onclick="event.stopPropagation(); document.getElementById('pdfFileInput').click()">
                         Choose PDF Files
                     </button>
-                    <p style="color: #666; margin-top: 10px;">Supports: PDF files</p>
+                    <p style="color: var(--muted-2); margin-top: 10px;">Supports: PDF files</p>
                 </div>
                 <div class="file-preview" id="pdfPreview"></div>
             </div>
+
 
             <div class="error-message" id="errorMessage"></div>
             <div class="progress-section" id="progressSection">
@@ -1138,9 +1451,9 @@
                 <p class="status-text" id="statusText">Starting conversion...</p>
             </div>
             
-            <div style="display:flex; justify-content:center; margin-top: 60px; margin-bottom: 30px;">
+            <div style="display:flex; justify-content:center;">
                 <button class="convert-btn" id="convertBtn" onclick="processFiles()" disabled>
-                    Convert to Text
+                    Extract Text
                 </button>
             </div>
 
@@ -1166,7 +1479,6 @@
             <div class="results-section" id="resultsSection">
                 <div class="results-controls">
                     <h2 id="resultsTitle">Extracted Text</h2>
-                    <div class="results-actions">
                     <div class="sort-controls">
                         <label for="sortSelect">Sort by:</label>
                         <select id="sortSelect" class="sort-select" onchange="sortResults()">
@@ -1176,51 +1488,51 @@
                             <option value="size">File Size (Small to Large)</option>
                             <option value="sizeDesc">File Size (Large to Small)</option>
                         </select>
-                        <button class="toggle-separator-btn active" id="toggleSeparatorBtn" onclick="toggleSeparators()">
-                            <span id="separatorText">Include Separators</span>
-                        </button>
-                        <button class="remove-result-btn" id="clearResultsBtn" onclick="clearAllResults()" title="Remove All Results">
-                            Remove All Results
+                        <button class="toggle-separator-btn" id="toggleSeparatorBtn" onclick="toggleSeparators()">
+                            <span id="separatorText">No Separators</span>
                         </button>
                         <button class="toggle-all-btn" id="toggleAllBtn" onclick="toggleAll()">
                             <span class="collapse-icon" id="toggleAllIcon">▼</span> Toggle All
                         </button>
-                    </div>
-                    <div class="copy-all-section inline" id="copyAllSection" aria-label="Copy and download all results">
-                        <button class="copy-all-btn" id="copyAllBtn" onclick="copyAllText()" title="Copy all extracted text">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;vertical-align:middle;display:inline-block;" aria-hidden="true">
-                                <rect x="9" y="9" width="10" height="10" rx="2"></rect>
-                                <path d="M7 15H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                            All Text
+                        <div class="copy-all-section inline" id="copyAllSection" aria-label="Copy and download all results">
+                            <button class="copy-all-btn" id="copyAllBtn" onclick="copyAllText()" title="Copy all extracted text">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;vertical-align:middle;display:inline-block;" aria-hidden="true">
+                                    <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+                                    <path d="M7 15H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                All Text
+                            </button>
+                            <button class="copy-all-btn" id="downloadAllBtn" onclick="downloadAllText()" title="Download all extracted text as .txt">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;vertical-align:middle;display:inline-block;" aria-hidden="true">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="7 10 12 15 17 10" />
+                                    <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                                All Files
+                            </button>
+                        </div>
+                        <button class="remove-result-btn" id="clearResultsBtn" onclick="clearAllResults()" title="Remove All Files" aria-label="Remove All Files">
+                            <span style="font-size:1.25rem; line-height:1;">×</span> All Files
                         </button>
-                        <button class="copy-all-btn" id="downloadAllBtn" onclick="downloadAllText()" title="Download all extracted text as .txt">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;vertical-align:middle;display:inline-block;" aria-hidden="true">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <polyline points="7 10 12 15 17 10" />
-                                <line x1="12" y1="15" x2="12" y2="3" />
-                            </svg>
-                            All Files
-                        </button>
-                    </div>
                     </div>
                 </div>
                 <div class="results-grid" id="resultsGrid"></div>
             </div>
-        </div>
+        </main>
     </div>
     <div class="notification-container" id="notificationContainer"></div>
+    <button id="backToTop" class="back-to-top" title="Back to top"><span class="back-to-top-glyph">⌃</span></button>
 
     <script>
         // Global variables
         let currentType = 'image';
         let currentMethod = 'client';
         // per-type store so switching converters preserves work
-        const filesByType = { image: [], powerpoint: [], pdf: [] };
-        const resultsByType = { image: [], powerpoint: [], pdf: [] };
+        const filesByType = { image: [], pdf: [], documents: [], everything: [] };
+        const resultsByType = { image: [], pdf: [], documents: [], everything: [] };
         let files = [];
         let extractedResults = [];
-        let separatorsEnabled = true;
+        let separatorsEnabled = false;
         let allExpanded = true;
         let removedItems = []; // For undo functionality
 
@@ -1242,14 +1554,26 @@
                     document.getElementById('globalSecureSave').checked = true;
                 }
             }
+            // Ensure the global API section is placed under the active converter's method selector
+            try {
+                const apiSection = document.getElementById('globalApiSection');
+                const activeSection = document.querySelector('.converter-section.active');
+                if (apiSection && activeSection) {
+                    const methodSelector = activeSection.querySelector('.method-selector');
+                    if (methodSelector && methodSelector.parentNode) {
+                        methodSelector.parentNode.insertBefore(apiSection, methodSelector.nextSibling);
+                    }
+                }
+            } catch (e) { console.warn('API section relocation on load failed', e); }
             updateApiKeyStatus();
         };
 
         function handleKeyInput(inputElement) {
             const val = inputElement.value;
-
+            const checkbox = document.getElementById('globalSecureSave');
+            
             // Check if secure save is enabled
-            const isSecureEnabled = document.getElementById('globalSecureSave').checked;
+            const isSecureEnabled = checkbox && checkbox.checked;
             
             if (isSecureEnabled) {
                 if (val.trim()) {
@@ -1259,8 +1583,31 @@
                 }
             }
             
-            // Update status indicators
             updateApiKeyStatus();
+        }
+
+        function updateApiKeyStatus() {
+            const status = document.getElementById('globalApiStatus');
+            const input = document.getElementById('globalApiKey');
+            
+            if (!status || !input) return;
+            
+            const hasKey = input.value.trim().length > 0;
+            const savedKey = localStorage.getItem(SECURE_STORAGE_KEY);
+            const isRemembered = savedKey !== null && savedKey !== '';
+            
+            status.classList.remove('active', 'saved', 'inactive');
+            
+            if (isRemembered && hasKey) {
+                status.classList.add('saved');
+                status.innerHTML = '<span class="status-dot"></span> Saved';
+            } else if (hasKey) {
+                status.classList.add('active');
+                status.innerHTML = '<span class="status-dot"></span> Active';
+            } else {
+                status.classList.add('inactive');
+                status.innerHTML = '<span class="status-dot"></span> Not Active';
+            }
         }
 
         function updateApiKeyStatus() {
@@ -1297,6 +1644,7 @@
                     showNotification('Saved API Key removed (Key remains active until refresh)');
                 }
             }
+            
             updateApiKeyStatus();
         }
 
@@ -1333,18 +1681,21 @@
         // DOM Elements
         const dropZones = {
             image: document.getElementById('imageDropZone'),
-            powerpoint: document.getElementById('powerpointDropZone'),
-            pdf: document.getElementById('pdfDropZone')
+            pdf: document.getElementById('pdfDropZone'),
+            documents: document.getElementById('documentsDropZone'),
+            everything: document.getElementById('everythingDropZone')
         };
         const fileInputs = {
             image: document.getElementById('imageFileInput'),
-            powerpoint: document.getElementById('powerpointFileInput'),
-            pdf: document.getElementById('pdfFileInput')
+            pdf: document.getElementById('pdfFileInput'),
+            documents: document.getElementById('documentsFileInput'),
+            everything: document.getElementById('everythingFileInput')
         };
         const previewAreas = {
             image: document.getElementById('imagePreview'),
-            powerpoint: document.getElementById('powerpointPreview'),
-            pdf: document.getElementById('pdfPreview')
+            pdf: document.getElementById('pdfPreview'),
+            documents: document.getElementById('documentsPreview'),
+            everything: document.getElementById('everythingPreview')
         };
         const convertBtn = document.getElementById('convertBtn');
         const errorMessage = document.getElementById('errorMessage');
@@ -1378,7 +1729,24 @@
             if (target) target.classList.add('active');
             document.querySelectorAll('.converter-option').forEach(opt => { if (opt !== target) opt.classList.remove('active'); });
             document.querySelectorAll('.converter-section').forEach(sec => sec.classList.remove('active'));
-            document.getElementById(type + 'Converter').classList.add('active');
+            const activeSection = document.getElementById(type + 'Converter');
+            activeSection.classList.add('active');
+            
+            // Move global API section to active converter
+            const apiSection = document.getElementById('globalApiSection');
+            const methodSelector = activeSection.querySelector('.method-selector');
+            if (apiSection && methodSelector) {
+                methodSelector.parentNode.insertBefore(apiSection, methodSelector.nextSibling);
+            }
+            
+            // enforce client-only when selecting 'everything'
+            if (type === 'everything') {
+                currentMethod = 'client';
+                const methodOptions = Array.from(document.querySelectorAll(`#${type}Converter .method-option`));
+                methodOptions.forEach(opt => opt.classList.remove('active'));
+                const clientOpt = methodOptions.find(o => o.onclick && o.onclick.toString().includes("'client'"));
+                if (clientOpt) clientOpt.classList.add('active');
+            }
             loadStateForType(type);
         }
 
@@ -1411,15 +1779,13 @@
         }
 
         function selectMethod(method, type) {
-            currentMethod = method;
             const methodOptions = Array.from(document.querySelectorAll(`#${type}Converter .method-option`));
             const target = methodOptions.find(opt => opt.onclick && opt.onclick.toString().includes(`'${method}'`));
+            // ignore selection if the target option is disabled
+            if (target && target.classList.contains('disabled')) return;
+            currentMethod = method;
             if (target) target.classList.add('active');
             methodOptions.forEach(opt => { if (opt !== target) opt.classList.remove('active'); });
-            const cloudMethodDiv = document.getElementById(type + 'CloudMethod');
-            if (cloudMethodDiv) {
-                cloudMethodDiv.classList.toggle('active', method === 'cloud');
-            }
         }
 
         function handleFiles(fileList, type) {
@@ -1428,17 +1794,38 @@
             if (newFiles.length === 0) return;
 
             const validTypes = {
-                image: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/bmp'],
-                powerpoint: ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.ms-powerpoint'],
-                pdf: ['application/pdf']
+                image: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/bmp', 'image/tiff', 'image/webp'],
+                pdf: ['application/pdf'],
+                documents: ['application/vnd.openxmlformats-officedocument.presentationml.presentation','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.oasis.opendocument.text','application/vnd.oasis.opendocument.presentation'],
+                everything: []
             };
 
             const validFiles = newFiles.filter(file => {
                 const ext = file.name.split('.').pop().toLowerCase();
-                const typeValid = validTypes[type].some(t => file.type === t);
-                if (type === 'powerpoint') return typeValid || ['pptx', 'ppt'].includes(ext);
-                if (type === 'pdf') return typeValid || ext === 'pdf';
-                return typeValid;
+                
+                // Image validation
+                if (type === 'image') {
+                    const typeValid = validTypes[type].some(t => file.type === t);
+                    return typeValid || ['png','jpg','jpeg','gif','bmp','tiff','webp'].includes(ext);
+                }
+                // PDF validation
+                if (type === 'pdf') {
+                    const typeValid = validTypes[type].some(t => file.type === t);
+                    return typeValid || ext === 'pdf';
+                }
+                // Documents validation
+                if (type === 'documents') {
+                    const typeValid = validTypes[type].some(t => file.type === t);
+                    return typeValid || ['docx','pptx','xlsx','odt','odp'].includes(ext);
+                }
+                // Everything validation
+                if (type === 'everything') {
+                    const allowed = ['png','jpg','jpeg','gif','bmp','tiff','webp','heic','heif','pdf','pdfa','docx','doc','docm','dot','dotx','pptx','ppt','pptm','pps','ppsx','key','xlsx','xls','xlsm','ods','tsv','dif','odt','odp','txt','html','htm','md','rtf','eml','emlx','epub','mobi','azw','azw3','json','csv','tsv','yaml','yml','toml','ini','cfg','conf','log','sql','tex','rst','zip','rar','7z','tar','gzip','iso','bz2','bzip2','xz','lzma','cab','arj','xml','svg','msg','pst','djvu','mbox','ps','ipynb','xps','chm','ics','vcf','fb2','ico','xy'];
+                    if (allowed.includes(ext)) return true;
+                    if (file.type.startsWith('image/')) return true;
+                    return false;
+                }
+                return false;
             });
 
             if (validFiles.length < newFiles.length) {
@@ -1459,8 +1846,8 @@
             files.forEach((file, index) => {
                 const div = document.createElement('div');
                 div.className = 'preview-item';
-
-                if (currentType === 'image') {
+                const isImage = (currentType === 'image') || (currentType === 'everything' && (file.type.startsWith('image/') || /\.(png|jpg|jpeg|gif|bmp|tiff|webp)$/i.test(file.name)));
+                if (isImage) {
                     const reader = new FileReader();
                     reader.onload = e => {
                         div.innerHTML = `
@@ -1471,7 +1858,7 @@
                     };
                     reader.readAsDataURL(file);
                 } else {
-                    const icon = currentType === 'powerpoint' ? '◩' : '▭';
+                    const icon = currentType === 'documents' ? '◩' : '▭';
                     div.innerHTML = `
                         <div class="preview-icon">${icon}</div>
                         <div class="preview-info">${file.name}<br>(${formatSize(file.size)})</div>
@@ -1529,9 +1916,10 @@
             extractedResults = [];
 
             try {
-                if (currentType === 'image') await processImages();
-                else if (currentType === 'powerpoint') await processPowerPoints();
-                else if (currentType === 'pdf') await processPDFs();
+            if (currentType === 'image') await processImages();
+            else if (currentType === 'pdf') await processPDFs();
+            else if (currentType === 'documents') await processDocumentsFiles();
+            else if (currentType === 'everything') await processEverythingFiles();
 
                 displayResults();
                 updateStats();
@@ -1725,6 +2113,98 @@
             });
         }
 
+        async function extractDOCXText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        const zip = new PizZip(e.target.result);
+                        const docXml = zip.files["word/document.xml"] ? zip.files["word/document.xml"].asText() : null;
+                        if (!docXml) return reject(new Error("Invalid DOCX file or missing document.xml"));
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(docXml, "text/xml");
+                        const texts = xmlDoc.getElementsByTagName("w:t");
+                        let full = "";
+                        for (let i = 0; i < texts.length; i++) full += texts[i].textContent + " ";
+                        resolve(full.replace(/\s+/g, " ").trim());
+                    } catch (err) {
+                        reject(new Error("DOCX parsing failed"));
+                    }
+                };
+                reader.onerror = () => reject(new Error("Error reading DOCX file."));
+                reader.readAsBinaryString(file);
+            });
+        }
+
+        async function extractODTText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        const zip = new PizZip(e.target.result);
+                        const contentXml = zip.files["content.xml"] ? zip.files["content.xml"].asText() : null;
+                        if (!contentXml) return reject(new Error("Invalid ODT file or missing content.xml"));
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(contentXml, "text/xml");
+                        const text = xmlDoc.documentElement.textContent || "";
+                        resolve(text.replace(/\s+/g, " ").trim());
+                    } catch (err) {
+                        reject(new Error("ODT parsing failed"));
+                    }
+                };
+                reader.onerror = () => reject(new Error("Error reading ODT file."));
+                reader.readAsBinaryString(file);
+            });
+        }
+
+        async function extractXLSXText(file) {
+            const buf = await file.arrayBuffer();
+            const data = new Uint8Array(buf);
+            let sheetsText = [];
+            try {
+                const wb = XLSX.read(data, { type: 'array' });
+                let id = 1;
+                wb.SheetNames.forEach(name => {
+                    const sheet = wb.Sheets[name];
+                    const csv = XLSX.utils.sheet_to_csv(sheet);
+                    sheetsText.push({ id: id++, text: `=== Sheet: ${name} ===\n\n${csv}` });
+                });
+            } catch (e) {
+                sheetsText.push({ id: 1, text: 'Error parsing XLSX' });
+            }
+            return sheetsText;
+        }
+
+        async function extractTextFromEpubZip(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        const zip = new PizZip(e.target.result);
+                        const files = Object.keys(zip.files);
+                        const xhtmlFiles = files.filter(n => /\.(xhtml|html)$/i.test(n));
+                        let id = 1;
+                        const blocks = [];
+                        xhtmlFiles.forEach(name => {
+                            try {
+                                const content = zip.files[name].asText();
+                                const clean = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                                blocks.push({ id: id++, text: `=== ${name} ===\n\n${clean}` });
+                            } catch (err) {
+                                blocks.push({ id: id++, text: `=== ${name} ===\n\n(Unable to read)` });
+                            }
+                        });
+                        if (blocks.length === 0) blocks.push({ id: 1, text: 'No XHTML/HTML content found in EPUB.' });
+                        resolve(blocks);
+                    } catch (err) {
+                        reject(new Error('Invalid EPUB file'));
+                    }
+                };
+                reader.onerror = () => reject(new Error('Error reading EPUB file.'));
+                reader.readAsBinaryString(file);
+            });
+        }
+
         async function processPDFs() {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
             let completed = 0;
@@ -1796,6 +2276,234 @@
             });
         }
 
+        // Process Documents & Presentations
+        async function processDocumentsFiles() {
+            let completed = 0;
+            updateProgress(0, `Processing 0/${files.length} files...`);
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const ext = (file.name.split('.').pop() || '').toLowerCase();
+                try {
+                    if (ext === 'pptx') {
+                        const slides = await extractPPTXClient(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'documents', content: slides, originalFile: file });
+                    } else if (ext === 'odp') {
+                        const text = `${file.name}: ODP parsing not implemented. Please convert to PPTX for slide extraction.`;
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'documents', content: [{ id: 1, text }], originalFile: file });
+                    } else if (ext === 'docx') {
+                        const text = await extractDOCXText(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'documents', content: [{ id: 1, text }], originalFile: file });
+                    } else if (ext === 'odt') {
+                        const text = await extractODTText(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'documents', content: [{ id: 1, text }], originalFile: file });
+                    } else if (ext === 'rtf') {
+                        const text = await readFileAsText(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'documents', content: [{ id: 1, text }], originalFile: file });
+                    } else if (ext === 'xlsx') {
+                        const blocks = await extractXLSXText(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'documents', content: blocks, originalFile: file });
+                    } else {
+                        const text = await readFileAsText(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'documents', content: [{ id: 1, text }], originalFile: file });
+                    }
+                } catch (e) {
+                    extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'documents', content: [{ id: 1, text: `Error: ${e.message}` }], error: true, originalFile: file });
+                }
+                completed++;
+                updateProgress((completed / files.length) * 100, `Processing ${completed}/${files.length} files...`);
+            }
+        }
+
+        // Process Everything (client-only)
+        async function processEverythingFiles() {
+            let completed = 0;
+            updateProgress(0, `Processing 0/${files.length} files...`);
+            const imgExt = ['png','jpg','jpeg','gif','bmp','tiff','webp','heic','heif'];
+            const archiveExt = ['zip','rar','7z','tar','gzip','iso','bz2','bzip2','xz','lzma','cab','arj'];
+            const ebookExt = ['epub','mobi','azw','azw3'];
+            const specialFormats = ['djvu','mbox','ps','xy','xps','chm','ico','key'];
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const ext = (file.name.split('.').pop() || '').toLowerCase();
+                try {
+                    if (file.type.startsWith('image/') || imgExt.includes(ext)) {
+                        const text = await performOfflineOCR(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: [{ id: 1, text }], originalFile: file });
+                    } else if (ext === 'pdf') {
+                        const pages = await extractPDFClient(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: pages, originalFile: file });
+                    } else if (ext === 'pdfa') {
+                        const pages = await extractPDFClient(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: pages, originalFile: file });
+                    } else if (['pptx','ppt','pptm','pps','ppsx'].includes(ext) || ext === 'odp') {
+                        if (['pptx','ppt','pptm','pps','ppsx'].includes(ext)) {
+                            const slides = await extractPPTXClient(file);
+                            extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: slides, originalFile: file });
+                        } else {
+                            const text = `${file.name}: ODP parsing not implemented.`;
+                            extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: [{ id: 1, text }], originalFile: file });
+                        }
+                    } else if (['xlsx','xls','xlsm','ods'].includes(ext)) {
+                        const blocks = await extractXLSXText(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: blocks, originalFile: file });
+                    } else if (['docx','doc','docm','dot','dotx'].includes(ext)) {
+                        const text = await extractDOCXText(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: [{ id: 1, text }], originalFile: file });
+                    } else if (ext === 'odt') {
+                        const text = await extractODTText(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: [{ id: 1, text }], originalFile: file });
+                    } else if (ext === 'ipynb') {
+                        const blocks = await extractIPyNotebookText(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: blocks, originalFile: file });
+                    } else if (['rtf','txt','md','json','csv','tsv','html','htm','xml','svg','yaml','yml','toml','ini','cfg','conf','log','sql','tex','rst'].includes(ext)) {
+                        let text = await readFileAsText(file);
+                        if (ext === 'tsv') {
+                            // Normalize TSV to CSV-like text for readability
+                            text = text.split('\n').map(line => line.replace(/\t/g, ',')).join('\n');
+                        }
+                        if (ext === 'html' || ext === 'htm') {
+                            text = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                        }
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: [{ id: 1, text }], originalFile: file });
+                    } else if (ebookExt.includes(ext)) {
+                        const blocks = await extractTextFromEpubZip(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: blocks, originalFile: file });
+                    } else if (ext === 'fb2') {
+                        let text = await readFileAsText(file);
+                        text = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: [{ id: 1, text }], originalFile: file });
+                    } else if (['ics','vcf'].includes(ext)) {
+                        let text = await readFileAsText(file);
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: [{ id: 1, text }], originalFile: file });
+                    } else if (archiveExt.includes(ext)) {
+                        if (ext === 'zip') {
+                            const textBlocks = await extractTextFromZip(file);
+                            extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: textBlocks, originalFile: file });
+                        } else {
+                            const text = `${file.name}: Archive format (.${ext}) requires specialized extraction. Try converting to ZIP or uploading individual files.`;
+                            extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: [{ id: 1, text }], originalFile: file });
+                        }
+                    } else if (['eml','emlx','msg','pst','mbox'].includes(ext)) {
+                        let text = await readFileAsText(file);
+                        text = text.substring(0, 5000) || `${file.name}: Email file detected. Limited text extraction available.`;
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: [{ id: 1, text }], originalFile: file });
+                    } else if (specialFormats.includes(ext)) {
+                        let message = '';
+                        if (ext === 'djvu') message = `${file.name}: DjVu format requires specialized OCR tools. Try converting to PDF first.`;
+                        else if (ext === 'ps') message = `${file.name}: PostScript format. Try converting to PDF for better text extraction.`;
+                        else if (ext === 'xps') message = `${file.name}: XPS (Open XML Paper). Convert to PDF for extraction.`;
+                        else if (ext === 'chm') message = `${file.name}: CHM (Compiled HTML Help). Convert/extract HTML pages first.`;
+                        else if (ext === 'ico') message = `${file.name}: ICO icon format. Text extraction not applicable.`;
+                        else if (ext === 'key') message = `${file.name}: Apple Keynote. Please export to PPTX for slide extraction.`;
+                        else if (ext === 'xy') message = `${file.name}: Unknown XY format. Please verify file type.`;
+                        else message = `${file.name}: Special format (.${ext}) - limited extraction available.`;
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: [{ id: 1, text: message }], originalFile: file });
+                    } else {
+                        const text = `${file.name}: Unsupported or unknown format (.${ext}).`;
+                        extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: [{ id: 1, text }], originalFile: file });
+                    }
+                } catch (e) {
+                    extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'everything', content: [{ id: 1, text: `Error: ${e.message}` }], error: true, originalFile: file });
+                }
+                completed++;
+                updateProgress((completed / files.length) * 100, `Processing ${completed}/${files.length} files...`);
+            }
+        }
+
+        // Extract text from Jupyter Notebook (.ipynb)
+        async function extractIPyNotebookText(file) {
+            try {
+                const text = await readFileAsText(file);
+                const nb = JSON.parse(text);
+                const cells = Array.isArray(nb.cells) ? nb.cells : [];
+                let id = 1;
+                const blocks = cells.map(cell => {
+                    const src = Array.isArray(cell.source) ? cell.source.join('') : (cell.source || '');
+                    const label = cell.cell_type ? cell.cell_type.toUpperCase() : 'CELL';
+                    return { id: id++, text: `=== ${label} ===\n\n${src}` };
+                });
+                if (blocks.length === 0) return [{ id: 1, text: 'No cells found in notebook.' }];
+                return blocks;
+            } catch (e) {
+                return [{ id: 1, text: 'Failed to parse .ipynb' }];
+            }
+        }
+
+        // Extract text from ZIP (using PizZip) for text-like files inside
+        async function extractTextFromZip(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        const zip = new PizZip(e.target.result);
+                        const entries = Object.keys(zip.files);
+                        const blocks = [];
+                        let id = 1;
+                        entries.forEach(name => {
+                            const lower = name.toLowerCase();
+                            if (/(\.txt|\.csv|\.json|\.md|\.html|\.htm|\.xml)$/i.test(lower)) {
+                                try {
+                                    const content = zip.files[name].asText();
+                                    const clean = /(\.html|\.htm)$/i.test(lower) ? content.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim() : content;
+                                    blocks.push({ id: id++, text: `=== ${name} ===\n\n${clean}` });
+                                } catch (err) {
+                                    blocks.push({ id: id++, text: `=== ${name} ===\n\n(Unable to read as text)` });
+                                }
+                            }
+                        });
+                        if (blocks.length === 0) blocks.push({ id: 1, text: 'No text-like files found inside ZIP.' });
+                        resolve(blocks);
+                    } catch (err) {
+                        reject(new Error('Invalid ZIP file or unsupported content.'));
+                    }
+                };
+                reader.onerror = () => reject(new Error('Error reading ZIP file.'));
+                reader.readAsBinaryString(file);
+            });
+        }
+
+        // (Old rich text handler removed; handled by documents/everything)
+
+        // Process advanced files (ebooks)
+        async function processAdvancedFiles() {
+            let completed = 0;
+            updateProgress(0, `Processing 0/${files.length} files...`);
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                try {
+                    const text = `${file.name}: E-book file detected. Full text extraction for EPUB/MOBI requires specialized parsing libraries. Basic file info extracted.`;
+                    extractedResults.push({
+                        fileName: file.name,
+                        fileSize: file.size,
+                        type: 'advanced',
+                        content: [{ id: 1, text: text }],
+                        originalFile: file
+                    });
+                } catch (e) {
+                    extractedResults.push({
+                        fileName: file.name,
+                        fileSize: file.size,
+                        type: 'advanced',
+                        content: [{ id: 1, text: `Error: ${e.message}` }],
+                        error: true,
+                        originalFile: file
+                    });
+                }
+                completed++;
+                updateProgress((completed / files.length) * 100, `Processing ${completed}/${files.length} files...`);
+            }
+        }
+
+        // Helper function to read file as text
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = () => reject(new Error("Error reading file."));
+                reader.readAsText(file);
+            });
+        }
+
         function updateProgress(percent, text) {
             progressFill.style.width = `${percent}%`;
             statusText.textContent = text;
@@ -1842,9 +2550,9 @@
                 const headerHtml = `
                     <div class="presentation-header" onclick="toggleFileExpansion(this)">
                         <div class="presentation-info">
-                            <div class="presentation-icon">${result.type === 'powerpoint' ? '◩' : (result.type === 'image' ? '□' : '▭')}</div>
+                            <div class="presentation-icon">${result.type === 'documents' ? '◩' : (result.type === 'image' ? '□' : '▭')}</div>
                             <div style="font-weight: bold;">${result.fileName}</div>
-                            <div class="file-counter">${result.content.length} ${result.type === 'image' ? 'Block' : (result.type === 'powerpoint' ? 'Slides' : 'Pages')}</div>
+                            <div class="file-counter">${result.content.length} ${result.type === 'pdf' ? 'Pages' : (result.type === 'image' ? 'Block' : 'Blocks')}</div>
                         </div>
                         <div class="presentation-buttons">
                             <button class="file-action-btn collapse-toggle" onclick="event.stopPropagation(); toggleFileExpansion(this.closest('.presentation-header'))" title="Toggle file" aria-label="Toggle file">
@@ -1863,6 +2571,11 @@
                                         <line x1="12" y1="15" x2="12" y2="3" />
                                     </svg>
                                 </button>
+                                <button class="file-action-btn expand-all-blocks-btn" onclick="event.stopPropagation(); toggleAllItemsInFile(this, ${fileIndex})" title="Expand all blocks" aria-pressed="false" aria-label="Expand all blocks">
+                                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" style="width:16px;height:16px;display:block;" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13 2H18M18 2V7M18 2L12 8M7 18H2M2 18V13M2 18L8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                    </svg>
+                                </button>
                                 <button class="remove-result-btn" onclick="event.stopPropagation(); removeResult(${fileIndex})" title="Remove this file" aria-label="Remove file">
                                     <span style="font-size:1.25rem; line-height:1;">×</span>
                                 </button>
@@ -1872,7 +2585,7 @@
 
                 let contentHtml = '<div class="slides-container">';
                 result.content.forEach(item => {
-                    const itemLabel = result.type === 'powerpoint' ? 'Slide' : (result.type === 'pdf' ? 'Page' : 'Text');
+                    const itemLabel = result.type === 'pdf' ? 'Page' : (result.type === 'image' ? 'Block' : 'Text');
                     let iconOrImg = `<div class="result-slide-icon">▢</div>`;
                     if (result.type === 'image' && result.originalFile) {
                         const url = URL.createObjectURL(result.originalFile);
@@ -1953,7 +2666,7 @@
             document.getElementById('totalChars').innerText = totalChars.toLocaleString();
             document.getElementById('totalWords').innerText = totalWords.toLocaleString();
             document.getElementById('totalItems').innerText = totalItems.toLocaleString();
-            const label = currentType === 'powerpoint' ? 'Slides' : (currentType === 'pdf' ? 'Pages' : 'Blocks');
+            const label = currentType === 'pdf' ? 'Pages' : 'Blocks';
             document.getElementById('itemLabel').innerText = label;
         }
 
@@ -2004,7 +2717,7 @@
             let fullText = separatorsEnabled ? `=== FILE: ${result.fileName} ===\n\n` : '';
             result.content.forEach(item => {
                 if (separatorsEnabled) {
-                    const label = result.type === 'powerpoint' ? 'SLIDE' : (result.type === 'pdf' ? 'PAGE' : 'BLOCK');
+                    const label = result.type === 'pdf' ? 'PAGE' : (result.type === 'image' ? 'BLOCK' : 'BLOCK');
                     fullText += `--- ${label} ${item.id} ---\n`;
                 }
                 fullText += item.text + "\n\n";
@@ -2018,7 +2731,7 @@
             let fullText = separatorsEnabled ? `=== FILE: ${result.fileName} ===\n\n` : '';
             result.content.forEach(item => {
                 if (separatorsEnabled) {
-                    const label = result.type === 'powerpoint' ? 'SLIDE' : (result.type === 'pdf' ? 'PAGE' : 'BLOCK');
+                    const label = result.type === 'pdf' ? 'PAGE' : (result.type === 'image' ? 'BLOCK' : 'BLOCK');
                     fullText += `--- ${label} ${item.id} ---\n`;
                 }
                 fullText += item.text + "\n\n";
@@ -2045,7 +2758,7 @@
                 if (separatorsEnabled) fullText += `=== FILE: ${result.fileName} ===\n\n`;
                 result.content.forEach(item => {
                     if (separatorsEnabled) {
-                        const label = result.type === 'powerpoint' ? 'SLIDE' : (result.type === 'pdf' ? 'PAGE' : 'BLOCK');
+                        const label = result.type === 'pdf' ? 'PAGE' : (result.type === 'image' ? 'BLOCK' : 'BLOCK');
                         fullText += `--- ${label} ${item.id} ---\n`;
                     }
                     fullText += item.text + "\n\n";
@@ -2062,7 +2775,7 @@
                 if (separatorsEnabled) fullText += `=== FILE: ${result.fileName} ===\n\n`;
                 result.content.forEach(item => {
                     if (separatorsEnabled) {
-                        const label = result.type === 'powerpoint' ? 'SLIDE' : (result.type === 'pdf' ? 'PAGE' : 'BLOCK');
+                        const label = result.type === 'pdf' ? 'PAGE' : (result.type === 'image' ? 'BLOCK' : 'BLOCK');
                         fullText += `--- ${label} ${item.id} ---\n`;
                     }
                     fullText += item.text + "\n\n";
@@ -2073,7 +2786,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'VoidText_All.txt';
+            a.download = 'VoidTextExtractor_All.txt';
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -2275,6 +2988,68 @@
             showNotification('Item restored!');
         }
 
+        // Toggle expansion of all items within a file
+        function toggleAllItemsInFile(button, fileIndex) {
+            const card = button.closest('.result-card');
+            if (!card) return;
+            const itemWrappers = card.querySelectorAll('.result-item-wrapper');
+            const isAllExpanded = button.getAttribute('aria-pressed') === 'true';
+            const newState = !isAllExpanded;
+            
+            itemWrappers.forEach(wrapper => {
+                wrapper.classList.toggle('expanded', newState);
+                const expandBtn = wrapper.querySelector('.expand-item-btn');
+                if (expandBtn) {
+                    expandBtn.setAttribute('aria-pressed', newState ? 'true' : 'false');
+                    // Update expand button SVG
+                    const svg = expandBtn.querySelector('svg');
+                    if (!svg) return;
+                    svg.setAttribute('viewBox', '0 0 20 20');
+                    svg.setAttribute('width', '16');
+                    svg.setAttribute('height', '16');
+                    while (svg.firstChild) svg.removeChild(svg.firstChild);
+                    const svgns = 'http://www.w3.org/2000/svg';
+                    const p = document.createElementNS(svgns, 'path');
+                    if (newState) {
+                        p.setAttribute('d', 'M3 12L8 12M8 12L8 17M8 12L2 18M16.9999 8.00024H11.9999M11.9999 8.00024V3.00024M11.9999 8.00024L17.9999 2.00024');
+                        expandBtn.title = 'Collapse block';
+                    } else {
+                        p.setAttribute('d', 'M13 2H18M18 2V7M18 2L12 8M7 18H2M2 18V13M2 18L8 12');
+                        expandBtn.title = 'Expand block';
+                    }
+                    p.setAttribute('stroke', 'currentColor');
+                    p.setAttribute('stroke-width', '1.5');
+                    p.setAttribute('stroke-linecap', 'round');
+                    p.setAttribute('stroke-linejoin', 'round');
+                    p.setAttribute('fill', 'none');
+                    svg.appendChild(p);
+                }
+            });
+            
+            // Update button state and SVG
+            button.setAttribute('aria-pressed', newState ? 'true' : 'false');
+            const btnSvg = button.querySelector('svg');
+            if (btnSvg) {
+                btnSvg.setAttribute('viewBox', '0 0 20 20');
+                while (btnSvg.firstChild) btnSvg.removeChild(btnSvg.firstChild);
+                const svgns = 'http://www.w3.org/2000/svg';
+                const p = document.createElementNS(svgns, 'path');
+                if (newState) {
+                    p.setAttribute('d', 'M3 12L8 12M8 12L8 17M8 12L2 18M16.9999 8.00024H11.9999M11.9999 8.00024V3.00024M11.9999 8.00024L17.9999 2.00024');
+                    button.title = 'Collapse all blocks';
+                } else {
+                    p.setAttribute('d', 'M13 2H18M18 2V7M18 2L12 8M7 18H2M2 18V13M2 18L8 12');
+                    button.title = 'Expand all blocks';
+                }
+                p.setAttribute('stroke', 'currentColor');
+                p.setAttribute('stroke-width', '1.5');
+                p.setAttribute('stroke-linecap', 'round');
+                p.setAttribute('stroke-linejoin', 'round');
+                p.setAttribute('fill', 'none');
+                btnSvg.appendChild(p);
+            }
+        }
+
         // Toggle expansion of a single result item's text area
         function toggleItemExpand(button) {
             const wrapper = button.closest('.result-item-wrapper');
@@ -2315,6 +3090,297 @@
                     button.title = 'Expand block';
                 }
         }
+
+
+        // Dynamic format selector removed; simplified to four categories.
+
+        // Back to Top button functionality
+        window.addEventListener('scroll', () => {
+            const button = document.getElementById('backToTop');
+            if (window.scrollY > 400) {
+                button.classList.add('visible');
+            } else {
+                button.classList.remove('visible');
+            }
+        });
+
+        document.getElementById('backToTop').addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Title animation with black hole effect
+        const titleText = "VoidTextExtractor";
+        const titleElement = document.getElementById('title');
+
+        // Create letters with initial opacity 0
+        for (let char of titleText) {
+            const span = document.createElement('span');
+            span.className = 'letter';
+            span.textContent = char === ' ' ? '\u00A0' : char;
+            titleElement.appendChild(span);
+        }
+
+        const letters = document.querySelectorAll('.letter');
+
+        // Sequential fade-in letter by letter on page load
+        function pageLoadFadeIn() {
+            let delay = 0;
+            const baseDelay = 80; // Time before first letter starts (faster)
+            const stagger = 30;   // Time between each letter (ms) - faster appearance
+
+            letters.forEach((letter, index) => {
+                setTimeout(() => {
+                    letter.style.opacity = 1;
+                }, baseDelay + index * stagger);
+            });
+
+            // Start the black hole effect after all letters have appeared
+            const totalDuration = baseDelay + (letters.length - 1) * stagger + 300;
+            setTimeout(setupBlackHoleEffect, totalDuration);
+        }
+
+        // Black hole interactive effect
+        function setupBlackHoleEffect() {
+            let mouseX = window.innerWidth / 2;
+            let mouseY = window.innerHeight / 2;
+
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            const forgetRadius = 40;
+            const requiredTimeInForgetZone = 100;
+            const fadingRadius = 50;
+            const instantDisappearRadius = 50;
+            const pullRadius = 200;
+            const recoverSnapMargin = 30; // snap-back buffer beyond fading radius
+
+            let lastTime = performance.now();
+
+            function animate(now) {
+                const deltaTime = now - lastTime;
+                lastTime = now;
+
+                letters.forEach(letter => {
+                    const rect = letter.getBoundingClientRect();
+                    const letterX = rect.left + rect.width / 2;
+                    const letterY = rect.top + rect.height / 2;
+                    const dx = mouseX - letterX;
+                    const dy = mouseY - letterY;
+                    const distance = Math.hypot(dx, dy);
+
+                    let tx = 0;
+                    let ty = 0;
+                    let scale = 1;
+                    let opacity = parseFloat(letter.style.opacity || 1);
+
+                    // Pull and shrink
+                    if (distance < pullRadius) {
+                        const pullNorm = Math.max(0, (pullRadius - distance) / pullRadius);
+                        const pullStrength = pullNorm * pullNorm * 280;
+                        tx = (dx / distance) * pullStrength;
+                        ty = (dy / distance) * pullStrength;
+
+                        const shrinkFactor = Math.pow(Math.max(0, (500 - distance) / 500), 3);
+                        scale = 1 - shrinkFactor * 0.95;
+                    }
+
+                    // Instant disappear
+                    if (distance < instantDisappearRadius) {
+                        opacity = 0;
+                        letter.dataset.wasRemoved = '1';
+                    }
+                    // Gradual fade
+                    else if (distance < fadingRadius) {
+                        const fadeFactor = (fadingRadius - distance) / fadingRadius;
+                        const distanceOpacity = 1 - fadeFactor * 0.7;
+                        opacity = Math.min(opacity, distanceOpacity);
+                    }
+
+                    // Ultra-fast forget
+                    if (distance < forgetRadius) {
+                        let timeInZone = (parseFloat(letter.dataset.timeInForgetZone) || 0) + deltaTime;
+                        letter.dataset.timeInForgetZone = timeInZone;
+                        if (timeInZone >= requiredTimeInForgetZone) {
+                            opacity = Math.max(0, opacity - deltaTime / 400);
+                            if (opacity <= 0.05) {
+                                letter.dataset.wasRemoved = '1';
+                            }
+                        }
+                    } else {
+                        letter.dataset.timeInForgetZone = '0';
+                        if (distance >= fadingRadius + recoverSnapMargin) {
+                            // Snap back immediately once fully outside the animation radius
+                            opacity = 1;
+                            letter.dataset.wasRemoved = '0';
+                        } else if (opacity < 1 && distance >= fadingRadius) {
+                            // Fast recovery near the boundary
+                            const wasRemoved = letter.dataset.wasRemoved === '1';
+                            const recoveryRate = wasRemoved ? (deltaTime / 120) : (deltaTime / 300);
+                            opacity = Math.min(1, opacity + recoveryRate);
+                            if (opacity >= 0.99 && wasRemoved) {
+                                letter.dataset.wasRemoved = '0';
+                            }
+                        }
+                    }
+
+                    letter.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+                    letter.style.opacity = opacity;
+                });
+
+                requestAnimationFrame(animate);
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Start the sequential fade-in when page loads
+        window.addEventListener('load', pageLoadFadeIn);
+
+        // Black hole visualization for upload icons
+        function createBlackhole(element, hoverElement) {
+            const container = document.querySelector(element);
+            const hoverTarget = document.querySelector(hoverElement);
+            if (!container || !hoverTarget) return;
+            
+            const h = container.offsetHeight;
+            const w = container.offsetWidth;
+            const cw = w;
+            const ch = h;
+            const maxorbit = 50; // Size of the black hole
+            const centery = ch / 2;
+            const centerx = cw / 2;
+            const startTime = new Date().getTime();
+            let currentTime = 0;
+            const stars = [];
+            let collapse = false;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = cw;
+            canvas.height = ch;
+            container.appendChild(canvas);
+            const context = canvas.getContext("2d");
+            context.globalCompositeOperation = "multiply";
+
+            function setDPI(canvas, dpi) {
+                if (!canvas.style.width) canvas.style.width = canvas.width + 'px';
+                if (!canvas.style.height) canvas.style.height = canvas.height + 'px';
+                const scaleFactor = dpi / 96;
+                canvas.width = Math.ceil(canvas.width * scaleFactor);
+                canvas.height = Math.ceil(canvas.height * scaleFactor);
+                const ctx = canvas.getContext('2d');
+                ctx.scale(scaleFactor, scaleFactor);
+            }
+
+            function rotate(cx, cy, x, y, angle) {
+                const radians = angle;
+                const cos = Math.cos(radians);
+                const sin = Math.sin(radians);
+                const nx = (cos * (x - cx)) + (sin * (y - cy)) + cx;
+                const ny = (cos * (y - cy)) - (sin * (x - cx)) + cy;
+                return [nx, ny];
+            }
+
+            setDPI(canvas, 192);
+
+            class Star {
+                constructor() {
+                    const rands = [];
+                    rands.push(Math.random() * (maxorbit / 2) + 1);
+                    rands.push(Math.random() * (maxorbit / 2) + maxorbit);
+                    this.orbital = (rands.reduce((p, c) => p + c, 0) / rands.length);
+                   
+                    this.x = centerx;
+                    this.y = centery + this.orbital;
+                    this.yOrigin = centery + this.orbital;
+                    this.speed = (Math.floor(Math.random() * 2.5) + 1.5) * Math.PI / 180;
+                    this.rotation = 0;
+                    this.startRotation = (Math.floor(Math.random() * 360) + 1) * Math.PI / 180;
+                    this.collapseBonus = this.orbital - (maxorbit * 0.7);
+                    if (this.collapseBonus < 0) this.collapseBonus = 0;
+                    this.color = 'rgba(255,255,255,' + (1 - (this.orbital / maxorbit)) + ')';
+                    this.hoverPos = centery + (maxorbit / 2) + this.collapseBonus;
+                    this.prevR = this.startRotation;
+                    this.prevX = this.x;
+                    this.prevY = this.y;
+                    stars.push(this);
+                }
+                draw() {
+                    this.rotation = this.startRotation + (currentTime * this.speed);
+
+                    if (!collapse) {
+                        if (this.y > this.yOrigin) this.y -= 2.5;
+                        if (this.y < this.yOrigin - 4) this.y += (this.yOrigin - this.y) / 10;
+                    } else {
+                        if (this.y > this.hoverPos) {
+                            this.y -= (this.y - this.hoverPos) / 5;
+                        }
+                        if (this.y < this.hoverPos - 4) {
+                            this.y += 2.5;
+                        }
+                    }
+
+                    context.save();
+                    context.strokeStyle = this.color;
+                    context.lineWidth = 1;
+                    context.beginPath();
+                    const oldPos = rotate(centerx, centery, this.prevX, this.prevY, -this.prevR);
+                    context.moveTo(oldPos[0], oldPos[1]);
+                    context.translate(centerx, centery);
+                    context.rotate(this.rotation);
+                    context.translate(-centerx, -centery);
+                    context.lineTo(this.x, this.y);
+                    context.stroke();
+                    context.restore();
+
+                    this.prevR = this.rotation;
+                    this.prevX = this.x;
+                    this.prevY = this.y;
+                }
+            }
+
+            // Hover events on the upload section (parent)
+            hoverTarget.addEventListener('mouseenter', () => {
+                collapse = true;
+            });
+            
+            hoverTarget.addEventListener('mouseleave', () => {
+                collapse = false;
+            });
+
+            function loop() {
+                const now = new Date().getTime();
+                currentTime = (now - startTime) / 50;
+                context.fillStyle = 'rgba(26, 26, 26, 0.3)';
+                context.fillRect(0, 0, cw, ch);
+                for (let i = 0; i < stars.length; i++) {
+                    if (stars[i]) stars[i].draw();
+                }
+                requestAnimationFrame(loop);
+            }
+
+            function init() {
+                context.fillStyle = 'rgba(26, 26, 26, 1)';
+                context.fillRect(0, 0, cw, ch);
+                for (let i = 0; i < 800; i++) {
+                    new Star();
+                }
+                loop();
+            }
+
+            init();
+        }
+
+        // Initialize black holes on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                createBlackhole('#blackhole-image', '#imageDropZone');
+                createBlackhole('#blackhole-pdf', '#pdfDropZone');
+                createBlackhole('#blackhole-documents', '#documentsDropZone');
+                createBlackhole('#blackhole-everything', '#everythingDropZone');
+            }, 500);
+        });
     </script>
 </body>
 </html>
