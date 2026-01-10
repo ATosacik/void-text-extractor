@@ -1347,7 +1347,7 @@
                 const normalizedBlob = await ensureImageBlob(file);
                 const objectUrl = URL.createObjectURL(normalizedBlob);
                 try {
-                    const { data: { text } } = await Tesseract.recognize(objectUrl, 'eng', {
+                    const { data: { text } } = await Tesseract.recognize(objectUrl, 'eng+slk+ces', {
                         logger: m => {
                         }
                     });
@@ -1686,7 +1686,14 @@
                         const text = `${file.name}: Legacy DOC detected. Please save/export as DOCX for reliable text extraction.`;
                         extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'documents', content: [{ id: 1, text }], originalFile: file });
                     } else if (ext === 'rtf') {
-                        const text = await readFileAsText(file);
+                        let text = await readFileAsText(file);
+                        let raw = text;
+                        raw = raw.replace(/\\'([0-9a-fA-F]{2})/g, function(_, hex){ return String.fromCharCode(parseInt(hex, 16)); });
+                        raw = raw.replace(/\\u(-?\d+)[^\\]?/g, function(_, num){ var code = parseInt(num, 10); if (code < 0) code = 65536 + code; try { return String.fromCharCode(code); } catch(e){ return ''; } });
+                        text = raw.replace(/\{\\\*[^}]*\}/g, '')
+                                   .replace(/\\[a-z]+(-?\d+)? ?/g, ' ')
+                                   .replace(/[{}]/g, '')
+                                   .replace(/\s+/g, ' ').trim();
                         extractedResults.push({ fileName: file.name, fileSize: file.size, type: 'documents', content: [{ id: 1, text }], originalFile: file });
                     } else if (ext === 'xlsx') {
                         const blocks = await extractXLSXText(file);
@@ -1734,7 +1741,10 @@
                         if (ext === 'html' || ext === 'htm') {
                             text = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
                         } else if (ext === 'rtf') {
-                            text = text.replace(/\{\\\*[^}]*\}/g, '')
+                            let raw = text;
+                            raw = raw.replace(/\\'([0-9a-fA-F]{2})/g, function(_, hex){ return String.fromCharCode(parseInt(hex, 16)); });
+                            raw = raw.replace(/\\u(-?\d+)[^\\]?/g, function(_, num){ var code = parseInt(num, 10); if (code < 0) code = 65536 + code; try { return String.fromCharCode(code); } catch(e){ return ''; } });
+                            text = raw.replace(/\{\\\*[^}]*\}/g, '')
                                        .replace(/\\[a-z]+(-?\d+)? ?/g, ' ')
                                        .replace(/[{}]/g, '')
                                        .replace(/\s+/g, ' ').trim();
