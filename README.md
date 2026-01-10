@@ -64,8 +64,8 @@ This project uses the following open-source libraries (all free for commercial a
 
 ## Development Journey
 
-I designed, developed, and refined VoidTextExtractor over a month, testing multiple approaches, integrating libraries, and ensuring smooth functionality.  
-Every detail from theme and layout to hidden easter eggs and final polish was crafted by me to create a seamless, user-friendly experience.
+VoidTextExtractor was designed, developed, and refined during a few weeks, exploring multiple approaches, integrating libraries, and ensuring smooth, reliable functionality.  
+Every detail from the theme and layout to final polish was carefully crafted to deliver a clean, user-friendly experience.
 
 ---
 
