@@ -8,7 +8,10 @@ Visit the website: [https://atosacik.github.io/void-text-extractor/](https://ato
 ## About
 
 VoidTextExtractor runs entirely locally in your browser, keeping your files private and secure.  
-The project was developed by me, with the help of AI-assisted tools such as GitHub Copilot and language models to speed up prototyping and explore implementation options.
+This project was carefully designed and implemented piece by piece by me. I made sure all features work flawlessly, added an interactive title, and even included a hidden credit element.  
+The theme, structure, and overall design were crafted entirely by me, putting a lot of thought and love into every detail.  
+The project was developed, refined, and finalized over the course of one month, including multiple iterations and improvements.  
+AI-assisted tools such as GitHub Copilot and language models were used to speed up prototyping and explore implementation options, but all final decisions, integrations, and design choices were made by me.
 
 ---
 
@@ -46,6 +49,23 @@ This project uses the following open-source libraries (all free for commercial a
 - Extracts text from **images, PDFs, documents, emails, ebooks, and archives**.  
 - Lightweight and easy to use — runs in any modern browser.  
 - Works offline, fully self-contained, fast, and private.  
+
+---
+
+## Highlights
+
+- Custom **interactive title** and dark-themed design.  
+- **Hidden credit** element revealed only via keyboard navigation.  
+- Fully **polished and tested** across all supported formats.  
+- Project went through **multiple design and functionality iterations** to reach the final version.  
+- **AI-assisted development** helped prototype and refine features efficiently.
+
+---
+
+## Development Journey
+
+I designed, developed, and refined VoidTextExtractor over a month, testing multiple approaches, integrating libraries, and ensuring smooth functionality.  
+Every detail — from theme and layout to hidden easter eggs and final polish — was crafted by me to create a seamless, user-friendly experience.
 
 ---
 
