@@ -4,7 +4,7 @@ This file shows the evolution of VoidTextExtractor, from the first version to th
 
 ---
 
-## Versions List (Newest → Oldest)
+## Versions List 
 
 1. **v1.4 (Final)**  
 2. **v1.3**  
@@ -14,7 +14,7 @@ This file shows the evolution of VoidTextExtractor, from the first version to th
 
 ---
 
-## Screenshots (Newest → Oldest)
+## Screenshots 
 
 ### v1.4 (Final)
 ![v1.4](v1.4.png)
