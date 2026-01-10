@@ -8,7 +8,7 @@ Visit the website: [https://atosacik.github.io/void-text-extractor/](https://ato
 ## About
 
 VoidTextExtractor runs entirely locally in your browser, keeping your files private and secure.  
-The project was built using modern AI-assisted development tools, including GitHub Copilot and language models, to prototype efficiently and refine functionality.
+The project was developed by me, with the help of AI-assisted tools such as GitHub Copilot and language models to speed up prototyping and explore implementation options.
 
 ---
 
