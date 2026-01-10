@@ -7,10 +7,8 @@ Visit the website: [https://atosacik.github.io/void-text-extractor/](https://ato
 
 ## About
 
-VoidTextExtractor runs **entirely locally in your browser**, so your files are never uploaded.  
-For users who want, it is also **compatible with cloud OCR services**, allowing more advanced text extraction if needed.  
-
-This makes it **fast, secure, and private**, while still supporting a wide variety of formats.
+VoidTextExtractor runs entirely locally in your browser, keeping your files private and secure.  
+The project was built using modern AI-assisted development tools, including GitHub Copilot and language models, to prototype efficiently and refine functionality.
 
 ---
 
