@@ -5,18 +5,16 @@ Visit the website: [https://atosacik.github.io/void-text-extractor/](https://ato
 
 ---
 
-## Status
+## About
 
-⚙️ Work in progress – the extractor is functional but still requires thorough testing.  
-The README and documentation will be finalized once testing is complete.
+VoidTextExtractor runs **entirely locally in your browser**, so your files are never uploaded.  
+For users who want, it is also **compatible with cloud OCR services**, allowing more advanced text extraction if needed.  
+
+This makes it **fast, secure, and private**, while still supporting a wide variety of formats.
 
 ---
 
-## Features
-
-- Extract text **locally in the browser**, no uploads required.  
-- Supports **images, documents, emails, ebooks, and archives**.  
-- Compatible file types include:
+## Supported Formats
 
 **Images:** PNG, JPG, JPEG, GIF, BMP, TIFF, WEBP, HEIF  
 **Documents:** PDF, TXT, HTML, HTM, MD, JSON, CSV, RTF, XML  
@@ -25,11 +23,13 @@ The README and documentation will be finalized once testing is complete.
 **Archives:** ZIP  
 **Ebooks:** EPUB  
 
+**Total supported formats:** 25
+
 ---
 
 ## Libraries Used
 
-This project uses the following open-source libraries, all free for commercial and non-commercial use:
+This project uses the following open-source libraries (all free for commercial and non-commercial use):
 
 - [PizZip](https://github.com/Stuk/jszip) (MIT)  
 - [PizZip Utils](https://github.com/open-xml-templating/pizzip) (MIT)  
@@ -39,6 +39,15 @@ This project uses the following open-source libraries, all free for commercial a
 - [Tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0)  
 - [SheetJS xlsx](https://github.com/SheetJS/sheetjs) (Apache-2.0)  
 - [heic2any](https://github.com/alexcorvi/heic2any) (MIT)
+
+---
+
+## Features
+
+- 100% local processing — no files are uploaded unless you choose cloud OCR.  
+- Extracts text from **images, PDFs, documents, emails, ebooks, and archives**.  
+- Lightweight and easy to use — runs in any modern browser.  
+- Works offline, fully self-contained, fast, and private.  
 
 ---
 
