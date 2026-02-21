@@ -7,7 +7,7 @@ Visit the website: [https://atosacik.github.io/void-text-extractor/](https://ato
 
 ## Note
 
-Some extractions doesn't work. May be fixed one day.
+Some extractions don't work. May be fixed one day.
 
 ---
 
