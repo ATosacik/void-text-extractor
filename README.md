@@ -5,6 +5,12 @@ Visit the website: [https://atosacik.github.io/void-text-extractor/](https://ato
 
 ---
 
+## Note
+
+Some extractions doesn't work. May be fixed one day.
+
+--
+
 ## About
 
 VoidTextExtractor runs entirely locally in your browser, keeping your files private and secure.  
